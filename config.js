@@ -11,17 +11,17 @@ window.KHATA_CONFIG = {
   sellerName: "Jokerwal Brothers",
 
   // Naya customer jab tak activate na ho, use ye dikhega
-  priceText: "₹ ____ (one-time)",          // apni keemat likho, jaise "₹4,999 (one-time)"
+  priceText: "₹1,499 (lifetime)",
   paymentLink: "",                           // Razorpay payment link (https://rzp.io/...) — na ho to khaali chhodo
   contactWhatsApp: "91XXXXXXXXXX",           // aapka WhatsApp number, 91 ke saath, bina + ke
 
-  // Firebase console se copy kiya hua config
+  // Firebase config (job-work-khata project)
   firebase: {
-    apiKey: "PASTE_API_KEY_HERE",
-    authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-    projectId: "PASTE_PROJECT_ID",
-    storageBucket: "PASTE_PROJECT_ID.appspot.com",
-    messagingSenderId: "PASTE_SENDER_ID",
-    appId: "PASTE_APP_ID"
+    apiKey: "AIzaSyBAu2m3KKa_Hjh-exK89nlNMHjeemutxyE",
+    authDomain: "job-work-khata.firebaseapp.com",
+    projectId: "job-work-khata",
+    storageBucket: "job-work-khata.firebasestorage.app",
+    messagingSenderId: "873586000923",
+    appId: "1:873586000923:web:8a891d4c1c9daa832ae4be"
   }
 };
