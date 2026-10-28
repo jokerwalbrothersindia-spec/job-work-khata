@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Job Work Khata</title>
+<meta name="description" content="Job work ledger for workshops and manufacturers">
+<meta name="theme-color" content="#0c0f0e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Job Khata">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Hind:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: phone-first app shell — greeting header, gold "ledger card" hero, sections as screens, fixed bottom bar with raised centre Issue button. Dark-first (brand gold on charcoal), light alternate. */
+:root{
+  --bg:#0c0f0e; --surface:#151a18; --raise:#1c2220; --sunk:#101412; --ink:#ece8df; --muted:#9aa09a; --line:#252c29;
+  --gold:#d6ab55; --gold-hi:#f1d892; --gold-soft:#2c2414; --on-gold:#1a1306;
+  --card-a:#2b2312; --card-b:#0f0d08; --card-ink:#f5ecd6; --card-muted:#bba982; --card-line:#5a4a26;
+  --ok:#6fcf97; --ok-soft:#14291d; --bad:#f08a7e; --bad-soft:#331a17; --warn:#ebab68;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --f-display:"Marcellus","Hind",Georgia,serif;
+  --f-body:"Hind",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f1f2ee; --surface:#ffffff; --raise:#ffffff; --sunk:#eceee9; --ink:#1a1f1c; --muted:#5f6862; --line:#dde1db;
+  --gold:#946710; --gold-hi:#b8862a; --gold-soft:#f5ead0; --on-gold:#ffffff;
+  --ok:#25784a; --ok-soft:#dcefe3; --bad:#b42d22; --bad-soft:#f8e0dc; --warn:#a9550f;
+  --shadow:0 8px 24px rgba(30,35,30,.10); color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f1f2ee; --surface:#ffffff; --raise:#ffffff; --sunk:#eceee9; --ink:#1a1f1c; --muted:#5f6862; --line:#dde1db;
+  --gold:#946710; --gold-hi:#b8862a; --gold-soft:#f5ead0; --on-gold:#ffffff;
+  --ok:#25784a; --ok-soft:#dcefe3; --bad:#b42d22; --bad-soft:#f8e0dc; --warn:#a9550f;
+  --shadow:0 8px 24px rgba(30,35,30,.10); color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+.auth{position:fixed;inset:0;z-index:30;background:var(--bg);display:grid;place-items:center;overflow-y:auto;padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.authcard{width:100%;max-width:420px;display:grid;gap:14px}
+.authcard .lang{justify-self:end}
+.authcard h2{margin:8px 0 0}
+.gbtn{background:var(--raise);color:var(--ink);border:1px solid var(--line);min-height:52px;font-size:1rem}
+.gbtn svg{width:20px;height:20px}
+html,body{overscroll-behavior-y:none}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(120px + env(safe-area-inset-bottom,0px))}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 10px}
+.me{display:flex;align-items:center;gap:10px;min-width:0}
+.me img,.av{width:40px;height:40px;border-radius:50%;flex:none;object-fit:cover;border:1.5px solid var(--gold);background:var(--raise)}
+.me .hello{font-size:.78rem;color:var(--muted);line-height:1.1}
+.me .nm{font-weight:700;font-size:1.02rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lang{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px;flex:none}
+.lang button{border:0;border-radius:99px;padding:5px 11px;font-size:.8rem;background:transparent;color:var(--muted);min-height:0}
+.lang button[aria-pressed="true"]{background:var(--gold);color:var(--on-gold)}
+
+/* type */
+h2{font-family:var(--f-display);font-weight:400;font-size:1.75rem;line-height:1.15;margin:10px 0 4px;text-wrap:balance;letter-spacing:.01em}
+h3{font-size:.78rem;margin:22px 0 10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sub{color:var(--muted);margin:0 0 16px;font-size:.93rem;max-width:60ch}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.meta{color:var(--muted);font-size:.85rem}
+
+/* hero ledger card */
+.hero{position:relative;overflow:hidden;border-radius:20px;padding:20px 20px 18px;color:var(--card-ink);background:radial-gradient(120% 90% at 100% 0%,rgba(241,216,146,.22),transparent 55%),linear-gradient(145deg,var(--card-a),var(--card-b));border:1px solid var(--card-line);box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;border:1px solid var(--card-line);opacity:.6}
+.hero .brand{font-family:var(--f-display);font-size:.95rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-hi)}
+.hero .lbl{margin-top:18px;font-size:.8rem;color:var(--card-muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.hero .amt{font-family:var(--f-num);font-size:2.2rem;font-weight:600;line-height:1.1;margin-top:2px;overflow-wrap:anywhere}
+.hero .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--card-line);position:relative;z-index:1}
+.hero .mini b{display:block;font-family:var(--f-num);font-size:1.15rem;font-weight:600}
+.hero .mini span{font-size:.7rem;color:var(--card-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.hero .mini .al b{color:#ff9d90}
+
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.quick button{display:grid;justify-items:center;gap:6px;padding:12px 4px 10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:.78rem;color:var(--ink);font-weight:600}
+.quick .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold)}
+.quick svg,.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* surfaces */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row > *{min-width:0}
+@media (max-width:420px){.row.stack{grid-template-columns:1fr}}
+label{display:grid;gap:6px;font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.02em}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:12px 13px;width:100%;min-width:0;min-height:50px}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:36px}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input[type=number]{font-family:var(--f-num)}
+button,.btn{font:inherit;font-weight:600;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);padding:12px 16px;cursor:pointer;min-height:46px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button.primary,.btn.primary{background:linear-gradient(180deg,var(--gold-hi),var(--gold));border-color:var(--gold);color:var(--on-gold)}
+button.danger{color:var(--bad);border-color:var(--bad);background:transparent}
+button.ghost{background:transparent}
+button.small,.btn.small{padding:7px 12px;font-size:.85rem;min-height:36px;border-radius:10px}
+button.block{width:100%}
+button:disabled{opacity:.5;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.calc{background:var(--gold-soft);border:1px dashed var(--gold);border-radius:14px;padding:14px;display:grid;gap:2px}
+.calc .line{font-family:var(--f-num);font-size:.86rem;color:var(--muted);overflow-wrap:anywhere}
+.calc .big{font-family:var(--f-num);font-size:1.8rem;font-weight:600;color:var(--gold)}
+
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border-radius:99px;padding:8px 14px;min-height:38px;font-size:.88rem;background:var(--surface)}
+.chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+
+/* job cards */
+.job{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px;margin-bottom:12px}
+.job.short{border-color:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+.job .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.job .head > div{min-width:0}
+.job .who{font-weight:700;font-size:1.08rem}
+.job .what{color:var(--muted);font-size:.9rem}
+.pill{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;white-space:nowrap}
+.pill.open{background:var(--gold-soft);color:var(--gold)}
+.pill.short{background:var(--bad-soft);color:var(--bad)}
+.pill.closed{background:var(--ok-soft);color:var(--ok)}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.counts div{background:var(--sunk);border-radius:12px;padding:8px 4px}
+.counts b{display:block;font-family:var(--f-num);font-size:1.2rem}
+.counts span{font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.counts .baaki b{color:var(--warn)}
+.bar{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-hi));border-radius:99px}
+.alertbox{background:var(--bad-soft);border-radius:12px;padding:12px;display:grid;gap:10px}
+.alertbox strong{color:var(--bad)}
+.inline{display:flex;gap:8px;align-items:flex-end}
+.inline > label{flex:1;min-width:0}
+.by{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.by img{width:18px;height:18px;border-radius:50%}
+
+/* lists */
+.list{display:grid}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item > div{min-width:0}
+.item.block{display:block}
+.itemhead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.itemhead > div{min-width:0}
+.feed .item{justify-content:flex-start}
+.feed .dotic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--sunk);color:var(--gold)}
+.feed .dotic.in{color:var(--ok)} .feed .dotic.pay{color:var(--warn)}
+.feed .dotic svg{width:18px;height:18px}
+.feed .grow{flex:1;min-width:0}
+.wcard{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:14px;border-radius:16px;background:var(--surface);margin-bottom:10px;justify-content:flex-start}
+.wcard .grow{flex:1;min-width:0}
+.wcard .bal{text-align:right;font-family:var(--f-num);font-weight:600}
+.init{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:700;flex:none;background:var(--gold-soft);color:var(--gold);font-family:var(--f-display);font-size:1.1rem}
+.ratebox{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+details.edit{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+details.edit summary{cursor:pointer;font-weight:600;color:var(--gold);font-size:.9rem;min-height:30px}
+details.edit[open] summary{margin-bottom:10px}
+.ent{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ent:last-child{border-bottom:0}
+.ent .l{min-width:0}
+.ent .r{text-align:right;flex:none;font-family:var(--f-num)}
+.ent .r small{display:block;color:var(--muted);font-size:.75rem}
+.plus{color:var(--ok)} .minus{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.stat b{display:block;font-family:var(--f-num);font-size:1.3rem;overflow-wrap:anywhere}
+.stat span{font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.stat.alert b{color:var(--bad)} .stat.gold b{color:var(--gold)}
+.back{background:transparent;border:0;padding:6px 0;color:var(--gold);min-height:36px}
+.empty{color:var(--muted);text-align:center;padding:26px 16px;border:1px dashed var(--line);border-radius:16px;background:var(--surface)}
+.empty b{display:block;color:var(--ink);margin-bottom:4px}
+.notice{background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:.9rem;margin-bottom:12px}
+.steps{margin:0;padding-left:20px;display:grid;gap:6px;font-size:.92rem}
+.steps b{color:var(--gold)}
+.team{display:flex;flex-wrap:wrap;gap:10px}
+.team .p{display:flex;align-items:center;gap:8px;background:var(--sunk);border-radius:99px;padding:4px 12px 4px 4px;font-size:.88rem}
+.team .p img{width:28px;height:28px;border-radius:50%}
+.role{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:2px 8px}
+textarea{min-height:140px;font-family:var(--f-num);font-size:.8rem}
+
+/* bottom bar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));box-shadow:0 -6px 20px rgba(0,0,0,.18)}
+nav.tabs button{border:0;background:none;border-radius:12px;padding:6px 2px 4px;display:grid;justify-items:center;gap:2px;font-size:.72rem;color:var(--muted);font-weight:600;min-width:0;min-height:52px}
+nav.tabs button[aria-current="page"]{color:var(--gold)}
+nav.tabs .fab{justify-self:center}
+nav.tabs .fab .disc{width:58px;height:58px;margin-top:-26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:var(--on-gold);box-shadow:0 8px 20px rgba(214,171,85,.35);border:4px solid var(--bg)}
+nav.tabs .fab .disc svg{width:26px;height:26px;stroke-width:2.2}
+nav.tabs .dot{position:relative}
+nav.tabs .dot[data-n]:not([data-n="0"])::after{content:attr(data-n);position:absolute;top:-4px;right:-12px;background:var(--bad);color:var(--bg);font-size:.62rem;border-radius:99px;padding:0 5px;line-height:15px;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;font-size:.9rem;z-index:20;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:no-preference){
+  section:not([hidden]){animation:rise .25s ease-out}
+  @keyframes rise{from{transform:translateY(6px)}to{transform:none}}
+  button:active{transform:scale(.98)}
+}
+.hist{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.hist .h{display:flex;gap:8px;align-items:flex-start;font-size:.86rem}
+.hist .h > span:last-child{min-width:0}
+.hk{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;flex:none;background:var(--sunk);font-size:.75rem;font-weight:700}
+.hk.out{color:var(--gold)} .hk.in{color:var(--ok)} .hk.deb{color:var(--bad)}
+.hist .who2{color:var(--muted)}
+.rolesel{min-height:44px}
+.co{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px;margin-bottom:10px}
+.co .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.co .head > div{min-width:0}
+.pill.pending{background:var(--gold-soft);color:var(--gold)}
+.pill.active{background:var(--ok-soft);color:var(--ok)}
+.pill.blocked,.pill.expired{background:var(--bad-soft);color:var(--bad)}
+.pricebox{background:var(--gold-soft);border:1px solid var(--gold);border-radius:14px;padding:14px;display:grid;gap:4px}
+.pricebox b{font-family:var(--f-num);font-size:1.4rem;color:var(--gold)}
+.adminbtn{width:100%;justify-content:space-between}
+.searchin{margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<div class="auth" id="auth">
+  <div class="authcard">
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="hi">हिं</button>
+    </div>
+    <div class="hero">
+      <div class="brand" id="a-seller"></div>
+      <div class="lbl" data-i18n="brandSub"></div>
+      <div class="amt" id="a-app" style="font-family:var(--f-display);font-size:1.9rem;font-weight:400"></div>
+    </div>
+    <h2 id="auth-h"></h2>
+    <p class="sub" id="auth-p" style="margin:0;overflow-wrap:anywhere"></p>
+
+    <button class="gbtn block" id="btn-google" type="button" hidden><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-i18n="btn_google"></span></button>
+
+    <form class="panel" id="a-create" autocomplete="off" hidden>
+      <label><span data-i18n="f_coname"></span><input id="c-name" placeholder="Shree Ganesh Jewellers"></label>
+      <div class="row">
+        <label><span data-i18n="f_cophone"></span><input id="c-phone" inputmode="tel" placeholder="98xxxxxxxx"></label>
+        <label><span data-i18n="f_cocity"></span><input id="c-city" placeholder="Mumbai"></label>
+      </div>
+      <button class="primary block" type="submit" id="c-save" data-i18n="btn_create"></button>
+      <p class="meta" style="margin:0" id="c-note"></p>
+    </form>
+
+    <div id="a-pending" hidden style="display:grid;gap:12px">
+      <div class="pricebox"><span class="meta" data-i18n="price_lbl"></span><b id="a-price"></b><span class="meta" data-i18n="price_note"></span></div>
+      <a class="btn primary block" id="a-pay" target="_blank" rel="noopener" hidden data-i18n="btn_pay_now"></a>
+      <a class="btn block" id="a-wa" target="_blank" rel="noopener" data-i18n="btn_contact"></a>
+      <p class="meta" style="margin:0;text-align:center"><span data-i18n="seller_no"></span> <span class="num" id="a-wanum" style="user-select:all"></span></p>
+    </div>
+
+    <button class="primary block" id="btn-admin-open" type="button" hidden data-i18n="btn_admin"></button>
+    <button class="ghost block" id="btn-signout" type="button" hidden data-i18n="btn_signout"></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="me">
+      <img id="me-av" alt="" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'/>">
+      <div style="min-width:0"><div class="hello" id="me-hello"></div><div class="nm" id="me-name"></div></div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="hi">हिं</button>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section data-view="home">
+    <div class="hero">
+      <div class="brand" id="h-co"></div>
+      <div class="lbl" data-i18n="st_pay"></div>
+      <div class="amt" id="h-pay">₹0</div>
+      <div class="mini">
+        <div><b id="h-open">0</b><span data-i18n="st_open"></span></div>
+        <div><b id="h-out">0</b><span data-i18n="st_out"></span></div>
+        <div class="al"><b id="h-short">0</b><span data-i18n="st_short"></span></div>
+      </div>
+    </div>
+    <div class="quick">
+      <button data-go="issue"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span><span data-i18n="q_issue"></span></button>
+      <button data-go="receive"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></span><span data-i18n="q_receive"></span></button>
+      <button data-go="ledger"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><span data-i18n="q_pay"></span></button>
+      <button data-go="ledger"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span data-i18n="q_stmt"></span></button>
+    </div>
+    <div id="h-alerts-wrap" hidden><h3 data-i18n="alerts_h"></h3><div id="h-alerts"></div></div>
+    <h3 data-i18n="recent_h"></h3>
+    <div class="panel" id="h-recent"></div>
+  </section>
+
+  <!-- ISSUE -->
+  <section data-view="issue" hidden>
+    <h2 data-i18n="issue_h"></h2>
+    <p class="sub" data-i18n="issue_sub"></p>
+    <form class="panel" id="issue-form" autocomplete="off">
+      <label><span data-i18n="f_worker"></span><select id="i-worker"></select></label>
+      <div class="row stack">
+        <label><span data-i18n="f_product"></span><select id="i-product"></select></label>
+        <label><span data-i18n="f_work"></span><select id="i-work"></select></label>
+      </div>
+      <div class="row">
+        <label><span data-i18n="f_pcs"></span><input id="i-pcs" type="number" inputmode="numeric" min="1" placeholder="25"></label>
+        <label><span data-i18n="f_date"></span><input id="i-date" type="date"></label>
+      </div>
+      <div class="row">
+        <label><span id="i-per-label"></span><input id="i-per" type="number" inputmode="decimal" min="0" step="any" placeholder="36"></label>
+        <label><span id="i-rate-label"></span><input id="i-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="0.50"></label>
+      </div>
+      <div class="calc" id="i-calc"></div>
+      <label><span data-i18n="f_note"></span><input id="i-note" data-i18n-ph="ph_note"></label>
+      <button class="primary block" type="submit" id="i-save" data-i18n="btn_issue"></button>
+    </form>
+  </section>
+
+  <!-- RECEIVE -->
+  <section data-view="receive" hidden>
+    <h2 data-i18n="rc_h"></h2>
+    <p class="sub" data-i18n="rc_sub"></p>
+    <div class="chips" id="rc-chips"></div>
+    <div class="panel" style="padding:12px 16px"><label><span data-i18n="rc_date"></span><input id="rc-date" type="date"></label></div>
+    <div id="rc-list"></div>
+  </section>
+
+  <!-- LEDGER -->
+  <section data-view="ledger" hidden>
+    <div id="l-listview">
+      <h2 data-i18n="ledger_h"></h2>
+      <p class="sub" data-i18n="ledger_sub"></p>
+      <div id="l-workers"></div>
+    </div>
+    <div id="l-detail" hidden></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section data-view="setup" hidden>
+    <h2 data-i18n="setup_h"></h2>
+    <p class="sub" data-i18n="setup_sub"></p>
+    <button class="adminbtn" id="s-admin" type="button" hidden><span data-i18n="btn_admin"></span><span>›</span></button>
+
+    <h3 data-i18n="company_h"></h3>
+    <div class="panel" id="s-company"></div>
+
+    <h3 data-i18n="team_h"></h3>
+    <div class="panel">
+      <form class="row stack" id="t-form" autocomplete="off" hidden>
+        <label><span data-i18n="f_temail"></span><input id="t-email" type="email" inputmode="email" autocapitalize="off" placeholder="name@gmail.com"></label>
+        <label><span data-i18n="f_tname"></span><input id="t-name"></label>
+        <label style="grid-column:1/-1"><span data-i18n="f_trole"></span><select id="t-role" class="rolesel"></select></label>
+        <button class="primary" type="submit" style="grid-column:1/-1" data-i18n="btn_addteam"></button>
+      </form>
+      <p class="meta" style="margin:0" id="t-hint"></p>
+      <div class="list" id="s-team"></div>
+      <div id="s-import"></div>
+      <details class="edit" id="help-mobile"><summary data-i18n="mobile_how"></summary><ol class="steps" id="mobile-steps"></ol></details>
+      <button class="ghost" id="s-signout" type="button" data-i18n="btn_signout"></button>
+    </div>
+
+    <h3 data-i18n="works_h"></h3>
+    <div class="panel">
+      <form class="inline" id="w-form" autocomplete="off">
+        <label><span data-i18n="f_wname"></span><input id="s-wname" placeholder="Kadi Fitting"></label>
+        <label style="flex:.55"><span data-i18n="f_wunit"></span><input id="s-wunit" placeholder="kadi"></label>
+        <button class="primary" type="submit" data-i18n="btn_add"></button>
+      </form>
+      <div class="list" id="s-works"></div>
+    </div>
+
+    <h3 data-i18n="products_h"></h3>
+    <div class="panel">
+      <form class="inline" id="p-form" autocomplete="off">
+        <label><span data-i18n="f_pname"></span><input id="s-pname" placeholder="Choki Choker"></label>
+        <button class="primary" type="submit" data-i18n="btn_add"></button>
+      </form>
+      <div class="list" id="s-products"></div>
+    </div>
+
+    <h3 data-i18n="workers_h"></h3>
+    <div class="panel">
+      <form class="row stack" id="k-form" autocomplete="off">
+        <label><span data-i18n="f_kname"></span><input id="s-kname"></label>
+        <label><span data-i18n="f_phone"></span><input id="s-kphone" inputmode="tel" placeholder="98xxxxxxxx"></label>
+        <button class="primary" type="submit" style="grid-column:1/-1" data-i18n="btn_addworker"></button>
+      </form>
+      <div class="list" id="s-workers"></div>
+    </div>
+    <p class="meta" id="sync" style="text-align:center"></p>
+  </section>
+
+  <!-- SUPER ADMIN -->
+  <section data-view="admin" hidden>
+    <button class="back" data-act="adminback">‹ <span data-i18n="back_app"></span></button>
+    <h2 data-i18n="admin_h"></h2>
+    <p class="sub" data-i18n="admin_sub"></p>
+    <div class="stats" id="ad-stats"></div>
+    <input class="searchin" id="ad-search" type="search" data-i18n-ph="ph_search">
+    <div class="chips" id="ad-chips"></div>
+    <div id="ad-list"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Sections" id="nav">
+  <button data-tab="home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span class="dot" id="dot-home" data-i18n="tab_home"></span></button>
+  <button data-tab="receive"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg><span class="dot" id="dot-rc" data-i18n="tab_receive"></span></button>
+  <button data-tab="issue" class="fab" aria-label="Issue"><span class="disc"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span data-i18n="tab_issue"></span></button>
+  <button data-tab="ledger"><svg class="ico" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg><span data-i18n="tab_ledger"></span></button>
+  <button data-tab="setup"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg><span data-i18n="tab_setup"></span></button>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

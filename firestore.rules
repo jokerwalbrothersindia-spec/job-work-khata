@@ -1,0 +1,76 @@
+rules_version = '2';
+// Job Work Khata (multi-company) — security rules
+// NOTE: SUPER_ADMIN email = wahi jo config.js me superAdminEmail hai.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function me()       { return request.auth.token.email.lower(); }
+    function isSuper()  { return signedIn() && me() == 'jokerwalbrothers@gmail.com'; }
+
+    function companyPath(cid) { return /databases/$(database)/documents/companies/$(cid); }
+    function memberPath(cid)  { return /databases/$(database)/documents/companies/$(cid)/members/$(me()); }
+    function isMember(cid)    { return signedIn() && exists(memberPath(cid)); }
+    function myRole(cid)      { return get(memberPath(cid)).data.role; }
+    function isOwnerOf(cid)   { return isMember(cid) && myRole(cid) == 'owner'; }
+    function isAdmin(cid)     { return isMember(cid) && myRole(cid) in ['owner', 'manager']; }
+    function active(cid)      { return get(companyPath(cid)).data.status == 'active'; }
+
+    // ---------- Company ----------
+    match /companies/{cid} {
+      // Super admin sirf company ki list/status dekhta hai — company ka khata data nahi
+      allow read: if isSuper() || isMember(cid);
+      // Nayi company hamesha "pending" banegi; activate sirf super admin karega
+      allow create: if signedIn()
+        && request.resource.data.ownerEmail == me()
+        && request.resource.data.status == 'pending';
+      allow update: if isSuper()
+        || (isOwnerOf(cid) && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['status', 'ownerEmail', 'validTill', 'activatedAt', 'note']));
+      allow delete: if isSuper();
+
+      // ---------- Users of this company ----------
+      match /members/{email} {
+        allow read: if isMember(cid);
+        allow create: if
+          // company banate waqt malik khud ko jodta hai
+          (signedIn() && email == me() && request.resource.data.role == 'owner'
+             && getAfter(companyPath(cid)).data.ownerEmail == me())
+          // owner: manager/staff jod sakta hai; manager: sirf staff
+          || (isAdmin(cid) && (request.resource.data.role == 'staff'
+                || (request.resource.data.role == 'manager' && myRole(cid) == 'owner')));
+        allow update: if
+          (isOwnerOf(cid) && resource.data.role != 'owner' && request.resource.data.role in ['manager', 'staff'])
+          || (signedIn() && email == me()
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photo', 'authName', 'lastSeen']));
+        allow delete: if isAdmin(cid) && resource.data.role != 'owner'
+          && (myRole(cid) == 'owner' || resource.data.role == 'staff');
+      }
+
+      // Settings data: sab dekh sakte hain, badlav sirf owner/manager
+      match /{coll}/{id} {
+        allow read: if isMember(cid) && active(cid)
+          && coll in ['works', 'products', 'workers', 'jobs', 'payments', 'meta'];
+      }
+      match /works/{id}    { allow create, update, delete: if isAdmin(cid) && active(cid); }
+      match /products/{id} { allow create, update, delete: if isAdmin(cid) && active(cid); }
+      match /workers/{id}  { allow create, update, delete: if isAdmin(cid) && active(cid); }
+      // Rozana ka kaam: har user entry kar sakta hai, delete sirf owner/manager
+      match /jobs/{id}     { allow create, update: if isMember(cid) && active(cid);
+                             allow delete: if isAdmin(cid) && active(cid); }
+      match /payments/{id} { allow create, update: if isMember(cid) && active(cid);
+                             allow delete: if isAdmin(cid) && active(cid); }
+      match /meta/{id}     { allow write: if isOwnerOf(cid) && active(cid); }
+    }
+
+    // ---------- Email -> company ----------
+    match /userIndex/{email} {
+      allow read: if signedIn() && (email == me() || isSuper());
+      allow create: if signedIn() && (
+          (email == me() && getAfter(companyPath(request.resource.data.cid)).data.ownerEmail == me())
+          || isAdmin(request.resource.data.cid));
+      allow update: if false;
+      allow delete: if signedIn() && (isAdmin(resource.data.cid) || isSuper());
+    }
+  }
+}
