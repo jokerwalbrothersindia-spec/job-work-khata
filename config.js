@@ -13,7 +13,7 @@ window.KHATA_CONFIG = {
   // Naya customer jab tak activate na ho, use ye dikhega
   priceText: "₹1,499 (lifetime)",
   paymentLink: "",                           // Razorpay payment link (https://rzp.io/...) — na ho to khaali chhodo
-  contactWhatsApp: "91XXXXXXXXXX",           // aapka WhatsApp number, 91 ke saath, bina + ke
+  contactWhatsApp: "918591616363",          // aapka WhatsApp number, 91 ke saath, bina + ke
 
   // Firebase config (job-work-khata project)
   firebase: {
